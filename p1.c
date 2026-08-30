@@ -15,12 +15,12 @@ int main() {
     fd_t pipe_2[2];
 
     if(pipe(pipe_1) < 0 || pipe(pipe_2) < 0) {
-        perror("Could not create pipe!");
+        perror("creating pipe");
         return -1;
     };
 
     if((ch = fork()) < 0) {
-        perror("Could not fork process!");
+        perror("forking process");
         return -1;
     };
 
@@ -53,7 +53,7 @@ int main() {
         if(n%2) {
             kill(ch, SIGTERM);
             wait(NULL);
-            perror("Invalid input!");
+            printf("Invalid input!\n");
             return -1;
         }
 

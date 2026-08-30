@@ -8,6 +8,8 @@
 #include <fcntl.h>
 #include <sys/types.h> 
 #include <sys/stat.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
 #include <time.h>
 #include <errno.h>
 #include <signal.h>
@@ -23,5 +25,6 @@ int gcd(int a, int b);
 
 int read_payload(fd_t fd, void* dest, size_t size);
 int write_payload(fd_t fd, void* src, size_t size);
+int exec_pipeline(char*** commands, size_t num_commands);
 
 #endif
