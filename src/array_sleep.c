@@ -48,6 +48,7 @@ int main() {
         close(pipe_2[WRITE_END]); // parent is not writing to second pipe
 
         int n;
+        printf("Enter array size: ");
         scanf("%d", &n);
 
         if(n%2) {
@@ -56,6 +57,8 @@ int main() {
             printf("Invalid input!\n");
             return -1;
         }
+
+        printf("Enter array elements: ");
 
         int* arr = malloc(sizeof(int) * n);
         for(int i = 0; i < n; i++) {
