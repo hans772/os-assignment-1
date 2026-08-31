@@ -60,6 +60,25 @@ int write_payload(fd_t fd, void* src, size_t size) {
     else return 0;
 }
 
+int exec_process(char** command) {
+    
+    pid_t ch = fork();
+
+    if(ch < 0) {
+        perror("forking child");
+        return -1;
+    }
+
+    if(!ch) {
+        execvp(command[0], command);
+        exit(EXIT_SUCCESS);
+        return -1;
+    }
+
+    wait(NULL);
+    return 0;
+}
+
 int exec_pipeline(char*** commands, size_t num_commands) {
     fd_t datapipe[2];
     fd_t p_inp;
@@ -101,8 +120,7 @@ int exec_pipeline(char*** commands, size_t num_commands) {
             }
 
             execvp(commands[c][0], commands[c]);
-            perror("execvp");
-            _exit(127);
+            _exit(EXIT_SUCCESS);
         }
 
         children[c] = ch;

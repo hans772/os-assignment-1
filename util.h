@@ -26,5 +26,6 @@ int gcd(int a, int b);
 int read_payload(fd_t fd, void* dest, size_t size);
 int write_payload(fd_t fd, void* src, size_t size);
 int exec_pipeline(char*** commands, size_t num_commands);
+int exec_process(char** command);
 
 #endif
