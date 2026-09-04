@@ -95,7 +95,7 @@ int main() {
 
     queue item_queue = {.fp = 0, .bp = 0, .sz = 0};
 
-    char command[1023];
+    char command[1024];
 
     while(shell_running) {
         printf("belt-control$ ");

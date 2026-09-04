@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
     if(!ch) {
 
         char** commands[] = {
-            (char*[]){"ps", "-axo", "pid,comm,%cpu,%mem", NULL},
+            (char*[]){"ps", "axo", "pid,comm,%cpu,%mem", NULL},
             (char*[]){"awk", "NR > 1 {score = 3 * $(NF-1) + 2 * $NF; print $1, $2, $(NF-1), $(NF), score}", NULL},
             (char*[]){"column", "-t", NULL},
             (char*[]){"sort", "-k5,5rn", NULL},
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
 
         while(1) {
             for(int i = 0; i < r; i++) {
-                printf("PID      COMMAND          \%CPU  \%MEM  SCORE\n");
+                printf("PID      COMMAND          %%CPU  %%MEM  SCORE\n");
                 exec_pipeline(commands, num_commands);
                 printf("\n\n");
                 sleep(n);
@@ -71,13 +71,9 @@ int main(int argc, char *argv[]) {
 
             if(res == -2) {
                 printf("Child process exiting..\n");
-                mqm.type = 10;
-                strncpy(mqm.data, "Q", MAX_DATA);
-
-                if(msgsnd(mq_id, &mqm, strlen(mqm.data)+1, 0) < 0) {
-                    perror("mq send");
+                if (msgctl(mq_id, IPC_RMID, NULL) == -1) {
+                    perror("mq remove");
                     exit(EXIT_FAILURE);
-                    return -1;
                 }
                 exit(EXIT_SUCCESS);
             } else if(res == -1) {
@@ -87,13 +83,14 @@ int main(int argc, char *argv[]) {
                 snprintf(proc_pid, sizeof(proc_pid), "%d", res);
 
                 char** info_commands[] = {
-                    (char*[]){"ps", "-o", "ppid,comm,%cpu,%mem", "-p", proc_pid, NULL},
-                    (char*[]){"awk", "NR == 1 { print $0, \"SCORE\" } NR > 1 {score = 3 * $(NF-1) + 2 * $NF; print $1, $2, $(NF-1), $(NF), score}", NULL},
+                    (char*[]){"ps", "o", "user,pid,comm,%cpu,%mem", "p", proc_pid, NULL},
+                    (char*[]){"awk", "NR == 1 { print $0, \"SCORE\" } NR > 1 {score = 3 * $(NF-1) + 2 * $NF; print $1, $2, $3, $(NF-1), $NF, score}", NULL},
                 };
                 
                 exec_pipeline(info_commands, 2);
 
                 kill(res, SIGKILL);
+                printf("Killed process: %d", res);
             }
 
         }
@@ -104,18 +101,14 @@ int main(int argc, char *argv[]) {
     while(1) {
         mq_message mqm;
         if(msgrcv(mq_id, &mqm, sizeof(mqm.data), 10, 0) < 0){
+            if (errno == EIDRM) {
+                wait(NULL); 
+                return 0;     
+            }
             perror("mq receive");
             return -1;
         }
 
-        if(mqm.data[0] == 'Q') {
-            wait(NULL);
-            if (msgctl(mq_id, IPC_RMID, NULL) == -1) {
-                perror("mq remove");
-                return -1;
-            } 
-            return 0;
-        }
         printf("Enter your input [-2 (quit), -1 (continue), <pid>]: ");
         scanf("%511s", mqm.data);
 

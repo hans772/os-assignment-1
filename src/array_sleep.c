@@ -32,7 +32,7 @@ int main() {
         int res;
         while((res = read_payload(pipe_1[READ_END], &payload, sizeof(p2c_payload))) > 0) {
             c2p_payload g = gcd(payload.x, payload.y);
-            printf("Received %d & %d (GCD : %d)\n", payload.x, payload.y, g);
+            printf("Child received %d & %d (GCD : %d)\n", payload.x, payload.y, g);
             usleep((time(NULL)%g)*1000);
             write_payload(pipe_2[WRITE_END], &g, sizeof(c2p_payload));
         }
@@ -73,9 +73,10 @@ int main() {
         for(int i = 0; i < n; i+=2) {
             payload.x = arr[i];
             payload.y = arr[i+1];
+            printf("Parent sending x: %d and y: %d", payload.x, payload.y);
             write_payload(pipe_1[WRITE_END], &payload, sizeof(p2c_payload));
             read_payload(pipe_2[READ_END], &g, sizeof(c2p_payload));
-            printf("Received g: %d\n", g);
+            printf("Parent received g: %d\n", g);
             usleep(g*1000);
         }
 
